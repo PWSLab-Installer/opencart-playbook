@@ -20,7 +20,7 @@
 
     - name: Fetch OpenCart Role
       git:
-        repo: https://ro:8PuqrbsCyEyTxejXG2V-@pwslab.org/ansible/invoiceninja-playbook.git
+        repo: https://ro:8PuqrbsCyEyTxejXG2V-@pwslab.org/ansible/opencart-playbook.git
         dest: /root/.ansible/roles/pwslab.opencart
         version: master
         force: yes
