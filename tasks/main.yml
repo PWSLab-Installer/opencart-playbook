@@ -46,11 +46,42 @@
         copy:
             src: /var/www/html/opencart/config-dist.php
             dest: /var/www/html/opencart/config.php
+            owner: www-data
+            group: www-data
+            mode: '0777'
+        when:
+            - os_check.stdout | regex_search("Ubuntu") 
 
     -   name: Copy files
         copy:
             src: /var/www/html/opencart/admin/config-dist.php
             dest: /var/www/html/opencart/admin/config.php
+            owner: www-data
+            group: www-data
+            mode: '0777'
+        when:
+            - os_check.stdout | regex_search("Ubuntu") 
+
+    
+    -   name: Copy files
+        copy:
+            src: /var/www/html/opencart/config-dist.php
+            dest: /var/www/html/opencart/config.php
+            owner: apache
+            group: apache
+            mode: '0777'
+        when:
+            - os_check.stdout | regex_search("CentOS") 
+
+    -   name: Copy files
+        copy:
+            src: /var/www/html/opencart/admin/config-dist.php
+            dest: /var/www/html/opencart/admin/config.php
+            owner: apache
+            group: apache
+            mode: '0777'
+        when:
+            - os_check.stdout | regex_search("CentOS") 
 
     -   name: Sets Apache conf file - Ubuntu
         become: true
@@ -95,7 +126,13 @@
         yum: name={{ item }} update_cache=yes state=present
         loop: [ 'php-mcrypt', 'curl', 'zlib', 'php-gd', 'php-mbstring', 'php-xml', 'php-mysql', 'php-zip' ]
         when:
-            - os_check.stdout | regex_search("CentOS")
+            - os_check.stdout | regex_search("CentOS Linux 8")
+
+    -   name: Install PHP Packages
+        yum: name={{ item }} update_cache=yes state=present
+        loop: [ 'curl', 'zlib', 'php-gd', 'php-mbstring', 'php-xml', 'php-zip' ]
+        when:
+            - os_check.stdout | regex_search("CentOS Linux 7")
 
     -   name: Restart Apache
         service:
