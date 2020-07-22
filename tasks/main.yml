@@ -1,0 +1,105 @@
+---
+
+    -   name: Download OpenCart
+        get_url:
+            url: https://github.com/opencart/opencart/releases/download/3.0.3.6/opencart-3.0.3.6.zip
+            dest: /tmp/opencart-3.0.3.6.zip
+        when:
+            - os_check.stdout | regex_search("Ubuntu") or os_check.stdout | regex_search("CentOS")
+
+
+    -   name: Extract OpenCart into /tmp
+        unarchive:
+            src: /tmp/opencart-3.0.3.6.zip
+            dest: /tmp
+        when:
+            - os_check.stdout | regex_search("Ubuntu") or os_check.stdout | regex_search("CentOS")
+
+
+    -   name: Move the Repos Around
+        command: 
+             /tmp/upload/ /var/www/html/opencart
+        ignore_errors: yes
+        when:
+            - os_check.stdout | regex_search("Ubuntu") or os_check.stdout | regex_search("CentOS")
+    
+    -   name: Create OpenCart Directory
+        file:
+            path: /var/www/html/opencart
+            recurse: yes
+            owner: www-data
+            mode: '0755'
+        when:
+            - os_check.stdout | regex_search("Ubuntu") 
+
+    -   name: Create OpenCart Directory
+        file:
+            path: /var/www/html/opencart
+            recurse: yes
+            owner: apache
+            mode: '0755'
+        when:
+            - os_check.stdout | regex_search("CentOS")
+
+
+    -   name: Copy files
+        copy:
+            src: /var/www/html/opencart/config-dist.php
+            dest: /var/www/html/opencart/config.php
+
+    -   name: Copy files
+        copy:
+            src: /var/www/html/opencart/admin/config-dist.php
+            dest: /var/www/html/opencart/admin/config.php
+
+    -   name: Sets Apache conf file - Ubuntu
+        become: true
+        template:
+            src: "opencart.conf.j2"
+            dest: "/etc/apache2/sites-available/opencart.conf"
+        when:
+                - os_check.stdout | regex_search("Ubuntu")
+
+    -   name: Disable default config
+        command: a2ensite opencart.conf
+        when:
+            - os_check.stdout | regex_search("Ubuntu")
+
+    -   name: Disable default config
+        command: a2dissite 000-default.conf
+        when:
+            - os_check.stdout | regex_search("Ubuntu")
+
+    -   name: Install PHP Packages
+        apt: name={{ item }} update_cache=yes state=present
+        loop: [ 'php-cli', 'php-common', 'php-mbstring', 'php-gd', 'php-intl', 'php-xml', 'php-mysql', 'php-zip', 'php-curl', 'php-xmlrpc', 'libapache2-mod-php', 'php-gd', 'php-zip', 'php-curl' ]
+        when:
+            - os_check.stdout | regex_search("Ubuntu")
+
+    -   name: Restart Apache
+        service:
+            name: apache2
+            state: restarted
+        when:
+            - os_check.stdout | regex_search("Ubuntu")
+
+    -   name: Sets Apache conf file - CentOS
+        become: true
+        template:
+            src: "opencart.conf.j2"
+            dest: "/etc/httpd/conf.d/opencart.conf"
+        when:
+                - os_check.stdout | regex_search("CentOS")
+
+    -   name: Install PHP Packages
+        yum: name={{ item }} update_cache=yes state=present
+        loop: [ 'php-mcrypt', 'curl', 'zlib', 'php-gd', 'php-mbstring', 'php-xml', 'php-mysql', 'php-zip' ]
+        when:
+            - os_check.stdout | regex_search("CentOS")
+
+    -   name: Restart Apache
+        service:
+            name: httpd
+            state: restarted
+        when:
+            - os_check.stdout | regex_search("CentOS")
