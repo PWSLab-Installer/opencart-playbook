@@ -140,3 +140,27 @@
             state: restarted
         when:
             - os_check.stdout | regex_search("CentOS")
+
+    -   name: Granting Permissions
+        file:
+            path: /var/www/html/opencart
+            recurse: yes
+            owner: www-data
+            mode: '0777'
+        when:
+            - os_check.stdout | regex_search("Ubuntu") 
+
+    -   name: Granting Permissions
+        file:
+            path: /var/www/html/opencart
+            recurse: yes
+            owner: apache
+            mode: '0777'
+        when:
+            - os_check.stdout | regex_search("CentOS") 
+
+    -   name: Disable SELinux
+        selinux:
+            state: disabled
+        when:
+            - os_check.stdout | regex_search("CentOS") 
